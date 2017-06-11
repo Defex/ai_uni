@@ -37,8 +37,8 @@ class Bajes():
             elif 'spam' not in v:
                 v['bajes_chance'] = 0.01
             else:
-                v['chance_spam'] = v['spam'] / count['spam']
-                v['chance_not_spam'] = v['not_spam'] / count['not_spam']
+                v['chance_spam'] = v['spam'] / self.count['spam']
+                v['chance_not_spam'] = v['not_spam'] / self.count['not_spam']
                 v['bajes_chance'] = v['chance_spam'] /( v['chance_spam'] + v['chance_not_spam'] )
 
     def sort_by_bajes_chance(self, data, reverse = False):
@@ -52,7 +52,6 @@ class Bajes():
     def set_bajes_chance(self, test_data, default_value = 0.5):
         for k,v in test_data.items():
             if k in self.data:
-                print(k, v)
                 test_data[k]['bajes_chance'] = self.data[k]['bajes_chance']
             else:
                 test_data[k]['bajes_chance'] = default_value
@@ -83,14 +82,3 @@ class Bajes():
             mult_added *= v
         result = mult / ( mult + mult_added )
         return result
-
-    def test_files(files):
-        for fle in files:
-            test_data = {}
-            text = read_file(fle)
-            words = get_words_from_text(text)
-            test_data = add_words_to_data(test_data, words, 'count')
-            test_data = set_bajes_chance(data, test_data)
-            values = get_closest_and_farest_values(test_data)
-            result = calc_if_is_spam(values)
-            print('{} {} {}'.format(fle, result, 'SPAM' if result > 0.5 else 'NOT SPAM'))

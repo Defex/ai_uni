@@ -29,9 +29,9 @@ class BajesFormatter():
                 self.get_k_v(data, k, i)
         elif k is 'is_winner':
             if v:
-                data['outcome'] = 'winn'
+                data['outcome'] = 'not_spam'
             else:
-                data['outcome'] = 'loss'
+                data['outcome'] = 'spam'
         else:
             data['data'].append(self.print_key_value(k, v))
 
