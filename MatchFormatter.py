@@ -1,5 +1,5 @@
 keys = {
-    'spell1Id', 'spell2Id', 'championId', 'highestAchievedSeasonTier', 'masteries', 'runes'
+    'spell1Id', 'spell2Id', 'championId', 'highestAchievedSeasonTier'
 }
 
 class MatchFormatter():
