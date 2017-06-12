@@ -1,6 +1,7 @@
 import json
 from time import sleep
 import urllib.request
+from MatchFormatter import MatchFormatter
 
 API_KEY = 'RGAPI-8a418372-2657-4265-841d-651768dc130c'
 
@@ -22,7 +23,7 @@ class UrlReader():
             url = 'https://s3-us-west-1.amazonaws.com/riot-developer-portal/seed-data/matches{}.json'.format(x)
             print(url)
             text.append(self.get_json_from_file(url))
-        return text
+        return MatchFormatter.format_files_data(text)
     
     def get_profile_by_name(self, name, api_key=API_KEY, server='eun1'):
         url = 'https://{}.api.riotgames.com/lol/summoner/v3/summoners/by-name/{}?api_key={}'.format(server, name, api_key)

@@ -29,3 +29,14 @@ class MatchFormatter():
         for match in matches:
             matches_data.append(self.format_match(match))
         return matches_data
+    
+    @staticmethod
+    def format_file_data(file_data):
+        return file_data['matches']
+    
+    @staticmethod
+    def format_files_data(files):
+        files_data = []
+        for f in files:
+            files_data.extend(MatchFormatter.format_file_data(f))
+        return files_data

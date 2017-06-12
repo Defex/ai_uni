@@ -1,5 +1,6 @@
 import glob
 import json
+from MatchFormatter import MatchFormatter
 
 class Reader():
     def read_file(self, file):
@@ -15,16 +16,7 @@ class Reader():
     def read_directory(self, path):
         files = glob.glob(path)
         return self.read_files(files)
-
-    def format_file_data(self, file_data):
-        return file_data['matches']
-
-    def format_files_data(self, files):
-        files_data = []
-        for f in files:
-            files_data.extend(self.format_file_data(f))
-        return files_data
     
     def read_directory_matches(self, path):
         matches = self.read_directory(path)
-        return self.format_files_data(matches)
+        return MatchFormatter.format_files_data(matches)
