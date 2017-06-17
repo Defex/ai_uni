@@ -1,4 +1,4 @@
-from lib.bajes.BajesHelper import BajesHelper
+from src.bajes.BajesHelper import BajesHelper
 
 if __name__ == '__main__':
     bajes_helper = BajesHelper()
