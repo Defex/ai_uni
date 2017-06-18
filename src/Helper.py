@@ -24,12 +24,15 @@ def get_text_from_url(url):
         except urllib.error.HTTPError as err:
             print(err.code)
             if err.code == 404:
-                raise err
+                return
             sleep(5)
 
 def get_json(url, delay = 0):
     sleep(delay)
-    return json.loads(get_text_from_url(url))
+    text = get_text_from_url(url)
+    if text:
+        return json.loads(text)
+    return
 
 def create_folder(directory):
     if not os.path.exists(directory):
