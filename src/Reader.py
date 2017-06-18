@@ -10,7 +10,7 @@ class Reader():
     def read_files(self, files):
         text = []
         for file in files:
-            text.append(self.read_file(file))
+            text.extend(self.read_file(file))
         return text
             
     def read_directory(self, path):
@@ -19,4 +19,4 @@ class Reader():
     
     def read_directory_matches(self, path):
         matches = self.read_directory(path)
-        return MatchFormatter.format_files_data(matches)
+        return matches

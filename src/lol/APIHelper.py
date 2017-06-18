@@ -1,11 +1,11 @@
 import urllib
 import json
+from config import API_KEY
 from time import sleep
 
 URL_PROFILE = 'https://{}.api.riotgames.com/lol/summoner/v3/summoners/by-name/{}?api_key={}'
 URL_MATCHLIST = 'https://{}.api.riotgames.com/lol/match/v3/matchlists/by-account/{}?api_key={}'
 URL_MATCH = 'https://{}.api.riotgames.com/lol/match/v3/matches/{}?api_key={}'
-API_KEY = 'RGAPI-8a418372-2657-4265-841d-651768dc130c'
 
 class LolAPIHelper():
     def __init__(self, server='eun1', api_key=API_KEY, debug = False):
@@ -22,7 +22,7 @@ class LolAPIHelper():
 
     def get_summoner_by_name(self, name):
             url = URL_PROFILE.format(self.server, urllib.parse.quote_plus(name), self.api_key)
-            return self.get_from_api(url, 1)
+            return self.get_from_api(url)
 
     def get_matchlist(self, account_id):
         url = URL_MATCHLIST.format(self.server, account_id, self.api_key)
@@ -38,14 +38,16 @@ class LolAPIHelper():
         url = URL_MATCH.format(self.server, game, self.api_key)
         return self.get_from_api(url)
 
-
-    def get_from_api(self, url, delay = 1):
+    def get_from_api(self, url):
         while True:
             try:
                 with urllib.request.urlopen(url) as res:
                     return json.loads(res.read())
             except urllib.error.HTTPError as err:
+                if err.code == 429:
+                    sleep(int(err.getheader('Retry-After')) + 1)
                 if err.code == 404:
-                    print(err.code)
                     return
-                sleep(delay)
+            except urllib.error.URLError as err:
+                print('url error: {}'.format(url))
+                return

@@ -131,6 +131,7 @@ class BajesHelper():
             elif val == 'l':
                 print('learning bajes from files')
                 bajes = self.bajes_learn_from_files()
+                print('learning from files complete')
             elif val == 'u':
                 print('learning bajes from url')
                 bajes = self.bajes_learn_from_url()
