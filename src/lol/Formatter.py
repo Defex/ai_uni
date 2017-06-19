@@ -27,7 +27,8 @@ class LolFormatter():
     def format_matches(self, matches):
         matches_data = []
         for match in matches:
-            matches_data.append(self.format_match(match))
+            if match is not None:
+                matches_data.append(self.format_match(match))
         return matches_data
     
     @staticmethod

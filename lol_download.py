@@ -10,4 +10,4 @@ if __name__ == '__main__':
     # a page contains 20 players
     server_names = crawler.run(config.SERVERS, config.PAGE_COUNT)
     fetcher = LolFetcher()
-    fetcher.download_matches_from_regions(config.SERVERS, config.MATCH_COUNT, config.MATCH_DIRECTORY)
+    fetcher.download_matches_from_regions(server_names, config.MATCH_COUNT, config.DOWNLOAD_DIRECTORY)

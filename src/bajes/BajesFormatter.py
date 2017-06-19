@@ -1,3 +1,4 @@
+# old class nothing fancy
 class BajesFormatter():
     def format_for_bajes(self, matches):
         participants_data = []
