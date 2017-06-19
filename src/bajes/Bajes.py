@@ -3,10 +3,6 @@ class Bajes():
         self.data = {}
         self.count = {}
 
-    def add_words(self, words, spam_key):
-        for word in words:
-            self.add_word(word, spam_key)
-
     def add_word(self, word, spam_key, data):
         word = word.lower()
         if word not in data:
