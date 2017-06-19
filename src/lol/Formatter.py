@@ -28,16 +28,9 @@ class LolFormatter():
         matches_data = []
         for match in matches:
             if match is not None:
-                matches_data.append(self.format_match(match))
+                formated = self.format_match(match)
+                if len(formated) == 10:
+                    matches_data.append(formated)
         return matches_data
-    
-    @staticmethod
-    def format_file_data(file_data):
-        return file_data['matches']
-    
-    @staticmethod
-    def format_files_data(files):
-        files_data = []
-        for f in files:
-            files_data.extend(LolFormatter.format_file_data(f))
-        return files_data
+
+lol_formatter = LolFormatter()

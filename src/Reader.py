@@ -1,6 +1,5 @@
 import glob
 import json
-from src.lol.Formatter import LolFormatter as MatchFormatter
 
 class Reader():
     def read_file(self, file):

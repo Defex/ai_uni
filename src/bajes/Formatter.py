@@ -10,8 +10,15 @@
 def format_matches(matches):
     f_matches = []
     for match in matches:
+        match = add_missing_match_keys(match)
         f_matches.append(format_match(match))
     return f_matches
+
+def add_missing_match_keys(match):
+    for p in match:
+        if 'highestAchievedSeasonTier' not in p:
+            p['highestAchievedSeasonTier'] = 'None'
+    return match
 
 def format_match(match):
     teams = get_team_fields(match)
@@ -23,7 +30,8 @@ def format_match(match):
     return format_mult_fields(formated)
 
 def get_team_fields(match):
-    teams = [{ 'data': match[:5] }, { 'data': match[5:] }]
+    half = int(len(match)/2)
+    teams = [{ 'data': match[:half] }, { 'data': match[half:] }]
     for team in teams:
         team['data'] = sort_by_champ(team['data'])
         team['champ_string'] = join_values(team['data'], 'championId')

@@ -17,8 +17,9 @@ SERVERS = [
 ]
 MATCH_COUNT = 200
 PAGE_COUNT = 50
+
+FORMAT_FROM = os.path.join('D:', 'lol_match_data' ,'*', '*.json')
+FORMAT_TO = os.path.join('D:', 'f_lol_match_data')
+
 DOWNLOAD_DIRECTORY = 'D:\lol_match_data'
-cwd = os.getcwd()
-# LEARN_DIRECTORY = os.path.join(cwd, 'data', '*')
-# LEARN_DIRECTORY = os.path.join('D:', 'eun1', '*.json')
-LEARN_DIRECTORY = os.path.join('D:', 'data' ,'*', '*.json')
+LEARN_DIRECTORY = os.path.join('D:', 'f_lol_match_data' , '*.json')
