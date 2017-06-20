@@ -1,37 +1,154 @@
 import os
 
 from src.bajes.Bajes import Bajes
-from src.bajes.BajesFormatter import BajesFormatter
+from src.bajes.SimpleFormatter import *
+from src.bajes.NoisyFormatter import BajesFormatter
 from src.lol.Formatter import LolFormatter as MatchFormatter
 from src.Reader import Reader
 from src.lol.APIHelper import LolAPIHelper
-from src.Helper import get_from_json_files, decode_file_text
+from format_match_data import *
+import config
 
 cwd = os.getcwd()
-MATCH_DATA_ALL = os.path.join(cwd, 'data', '*')
-MATCH_DATA = os.path.join(cwd, 'data', 'matches1.json')
+MATCH_DATA_ALL = config.LEARN_DIRECTORY
+MATCH_DATA = os.path.join(cwd, 'data', 'dudodu.json')
+
+MSG_WELCOME = 'Welcome to Bajes algorithm calculation!'
+MSG_COMMANDS = 'Commands: L - learn, learn with noise - N, F - load test matches from file, A - load test matches from url, S - test, N - test with noise, Q - exit bajes'
+MSG_UKNOWN = 'Uknown input option'
+MSG_LEARN_SIMPLE = 'Learning'
+MSG_LEARN_WITH_NOISE = 'Learning with noise'
+MSG_LEARN_COMPLETE = 'Learning complete!'
+MSG_TEST_FILE = 'Getting test matches from file'
+MSG_TEST_URL = 'Getting test matches from url'
+MSG_TEST_COMPLETE = 'testing completed'
 
 class BajesHelper():
-    def get_data_from_files(self, path):
-        reader = Reader()
-        text = reader.read_directory_matches(path)
-        return self.get_formated_bajes(text)
-    
-    def get_data_from_url(self):
-        text = get_from_json_files()
-        text = MatchFormatter.format_files_data(text)
-        return self.get_formated_bajes(text)
-    
-    def get_formated_bajes(self, text):
-        match_formatter = MatchFormatter()
-        bajes_formatter = BajesFormatter()
+    def execute(self):
+        print(MSG_WELCOME)
+        print(MSG_COMMANDS)
         bajes = Bajes()
-        formated_data = match_formatter.format_matches(text)
-        bajes_data = bajes_formatter.format_for_bajes(formated_data)
-        for participant in bajes_data:
-            bajes.add_words(participant['data'], participant['outcome'])
+        test_matches = []
+        val = input('Selecty your option: ').lower()
+        while val != 'q':
+            if val == 'f':
+                print(MSG_TEST_FILE)
+                test_matches = self.get_test_matches_from_file()
+            elif val == 'a':
+                user = input('user: ')
+                match_count = int(input('match_count: '))
+                print(MSG_TEST_URL)
+                test_matches = self.get_test_matches_from_url(user, match_count)
+            elif val == 'l':
+                print(MSG_LEARN_SIMPLE)
+                bajes = self.learn_simple()
+                print(MSG_LEARN_COMPLETE)
+            elif val == 'n':
+                print(MSG_LEARN_WITH_NOISE)
+                bajes = self.learn_noisy()
+                print(MSG_LEARN_COMPLETE)
+            elif val == 's':
+                print('testing_simple')
+                self.test_simple(bajes, test_matches)
+            elif val == 't':
+                print('testing with noise')
+                self.test_noisy(bajes, test_matches)
+            elif val == 'q':
+                return
+            else:
+                print(MSG_UKNOWN)
+            print(MSG_COMMANDS)
+            val = input('Selecty your option: ').lower()
+
+#   LEARNING
+    def learn_simple(self):
+        matches = self.read_formated_data(MATCH_DATA_ALL)
+        simple_data = self.get_simple_bajes_data(matches)
+        bajes = Bajes()
+        self.add_simple_words(bajes, simple_data)
+        bajes.calculate_spam_probabilities()
         return bajes
     
+    def learn_noisy(self):
+        matches = self.read_formated_data(MATCH_DATA_ALL)
+        simple_data = self.get_simple_bajes_data(matches)
+        noisy_data = self.get_noisy_bajes_data(matches)
+        bajes = Bajes()
+        # for x in range(0, 5):
+        self.add_simple_words(bajes, simple_data)
+        self.add_noisy_words(bajes, noisy_data)
+        bajes.calculate_spam_probabilities()
+        return bajes
+
+    def read_formated_data(self, path):
+        return Reader().read_directory(path)
+    
+    def get_simple_bajes_data(self, matches):
+        return format_matches(matches)
+    
+    def get_noisy_bajes_data(self, matches):
+        return BajesFormatter().format_for_bajes(matches)
+    
+    def add_simple_words(self, bajes, simple_data):
+        for match in simple_data:
+            for team in match:
+                words = self.get_simple_words(team)
+                bajes.add_words(words, team['outcome'])
+        return bajes
+
+    def get_simple_words(self, team):
+        words = []
+        for k, v in team.items():
+            if k != 'outcome':
+                words.append(v)
+        return words
+    
+    def add_noisy_words(self, bajes, noisy_data):
+        for p in noisy_data:
+            bajes.add_words(p['data'], p['outcome'])
+        return bajes
+    
+#   TESTING
+
+    def test_simple(self, bajes, test_matches):
+        results = self.calc_simple(bajes, test_matches)
+        results = self.get_result_data(results, test_matches)
+        self.print_results(results)
+
+    def test_noisy(self, bajes, test_matches):
+        results_noisy = self.calc_noisy(bajes, test_matches)
+        results_simple = self.calc_simple(bajes, test_matches)
+        results = []
+        for x in range(0, len(results_simple)):
+            avg = (results_simple[x] + results_noisy[x]) / 2
+            results.append(avg)
+        results= self.get_result_data(results, test_matches)
+        self.print_results(results)
+
+    def calc_simple(self, bajes, test_matches):
+        results = []
+        test_matches = self.get_simple_bajes_data(test_matches)
+        for match in test_matches:
+            for team in match:
+                test_data = {}
+                words = self.get_simple_words(team)
+                bajes.add_words_test(words, 'count', test_data)
+                bajes.set_bajes_chance(test_data)
+                values = bajes.get_closest_and_farest_values(test_data)
+                results.append(bajes.calc_if_is_spam(values))
+        return results
+
+    
+# here
+    def calc_noisy(self, bajes, test_matches):
+        results = []
+        for match in test_matches:
+            result1 = self.check_match(bajes, match[:5])
+            result2 = self.check_match(bajes, match[5:])
+            results.append(result1)
+            results.append(result2)
+        return results
+
     def check_match(self, bajes, formatted_match):
         bajes_formatter = BajesFormatter()
         bajes_formated_match = bajes_formatter.format_match(formatted_match)
@@ -41,26 +158,16 @@ class BajesHelper():
         bajes.set_bajes_chance(test_data)
         values = bajes.get_closest_and_farest_values(test_data)
         return bajes.calc_if_is_spam(values)
+
+    def get_test_matches_from_url(self, user, match_count):
+        test_matches = LolAPIHelper().get_matches_by_name(user, match_count)
+        return MatchFormatter().format_matches(test_matches)
     
-    def check_matches(self, bajes, formatted_matches):
-        results = []
-        for match in formatted_matches:
-            result1 = self.check_match(bajes, match[:5])
-            result2 = self.check_match(bajes, match[5:])
-            results.append(result1)
-            results.append(result2)
-        return results
-
-    def is_correct_guess(self, value, is_winner):
-        if value > 0.5 and is_winner:
-            return False
-        elif value > 0.5 and not is_winner:
-            return True
-        elif value < 0.5 and is_winner:
-            return True
-        elif value < 0.5 and not is_winner:
-            return False
-
+    def get_test_matches_from_file(self):
+        test_matches = Reader().read_file(MATCH_DATA)
+        return MatchFormatter().format_matches(test_matches)
+    
+#   PRINTING
     def get_result_data(self, results, formatted_matches):
         data = []
         correct = []
@@ -77,67 +184,23 @@ class BajesHelper():
             correct.append(correct2)
         return [data, correct]
 
+    def is_correct_guess(self, value, is_winner):
+        if value > 0.5 and is_winner:
+            return False
+        elif value > 0.5 and not is_winner:
+            return True
+        elif value < 0.5 and is_winner:
+            return True
+        elif value < 0.5 and not is_winner:
+            return False
+
     def print_results(self, results):
         print('{:<20} | {} | {}'.format('Bajes Chance', 'Outcome', 'Is correct?'))
         for r in results[0]:
             print('{:<20} | {:<7} | {}'.format(r[0], 'win' if r[1] == True else 'loss', r[2]))
-        total = len(results[1])
+        total = results[1].count(True) + results[1].count(False)
         correct = results[1].count(True)
         incorrect = total - correct
         percentage_correct = correct * 100 / total
         print('total guesses - {}, correct - {}, incorrect - {}'.format(total, correct, incorrect))
         print('Correct percentage - {}'.format(percentage_correct))
-
-    def bajes_learn_from_files(self):
-        bajes = self.get_data_from_files(MATCH_DATA_ALL)
-        bajes.calculate_spam_probabilities()
-        return bajes
-    
-    def bajes_learn_from_url(self):
-        return self.get_data_from_url()
-
-    def bajes_test_from_file(self, bajes):
-        reader = Reader()
-        match_formatter = MatchFormatter()
-        user_matches = reader.read_file(MATCH_DATA)['matches']
-        self.get_results(bajes, user_matches)
-    
-    def bajes_test_from_url(self, bajes, user = 'dudodu', match_count = 10):
-        url_reader = LolAPIHelper()
-        user_matches = url_reader.get_matches_by_name(user, match_count)
-        self.get_results(bajes, user_matches)
-    
-    def get_results(self, bajes, user_matches):
-        match_formatter = MatchFormatter()
-        formatted_matches = match_formatter.format_matches(user_matches)
-        results = self.check_matches(bajes, formatted_matches)
-        results = self.get_result_data(results, formatted_matches)
-        self.print_results(results)
-
-    def execute(self):
-        print('Welcome to Bajes algorithm calculation!')
-        print('Commands: L - learn bajes from files, U - learn from url, F - test bajes from file, A - test bajes from api, Q - exit bajes')
-        bajes = Bajes()
-        val = input('Selecty your option: ').lower()
-        while val != 'q':
-            if val == 'f':
-                self.bajes_test_from_file(bajes)
-                print('testing data from file')
-            elif val == 'a':
-                user = input('user: ')
-                match_count = int(input('match_count: '))
-                print('testing from url..')
-                self.bajes_test_from_url(bajes, user, match_count)
-            elif val == 'l':
-                print('learning bajes from files')
-                bajes = self.bajes_learn_from_files()
-                print('learning from files complete')
-            elif val == 'u':
-                print('learning bajes from url')
-                bajes = self.bajes_learn_from_url()
-            elif val == 'q':
-                return
-            else:
-                print('Uknown input option')
-            print('Commands: L - learn bajes, F - test bajes from file, A - test bajes from api, Q - exit bajes')
-            val = input('Selecty your option: ').lower()
