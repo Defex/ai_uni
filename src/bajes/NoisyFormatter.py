@@ -28,7 +28,7 @@ class BajesFormatter():
         elif type(v) is list:
             for i in v:
                 self.get_k_v(data, k, i)
-        elif k is 'is_winner':
+        elif k == 'is_winner':
             if v:
                 data['outcome'] = 'not_spam'
             else:
