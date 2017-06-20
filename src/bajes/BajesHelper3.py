@@ -15,13 +15,13 @@ MATCH_DATA_ALL = config.LEARN_DIRECTORY
 MATCH_DATA = os.path.join(cwd, 'data', 'dudodu.json')
 
 MSG_WELCOME = 'Welcome to Bajes algorithm calculation!'
-MSG_COMMANDS = 'Commands: L - learn bajes from files, U - learn from url, F - test bajes from file, A - test bajes from api, Q - exit bajes'
+MSG_COMMANDS = 'Commands: L - learn, learn with noise - N, F - load test matches from file, A - load test matches from url, S - test, N - test with noise, Q - exit bajes'
 MSG_UKNOWN = 'Uknown input option'
-MSG_LEARN_SIMPLE = 'learning bajes from files'
-MSG_LEARN_WITH_NOISE = 'learning bajes from files'
-MSG_LEARN_COMPLETE = 'learning from files complete'
-MSG_TEST_FILE = 'testing data from file'
-MSG_TEST_URL = 'testing from url..'
+MSG_LEARN_SIMPLE = 'Learning'
+MSG_LEARN_WITH_NOISE = 'Learning with noise'
+MSG_LEARN_COMPLETE = 'Learning complete!'
+MSG_TEST_FILE = 'Getting test matches from file'
+MSG_TEST_URL = 'Getting test matches from url'
 MSG_TEST_COMPLETE = 'testing completed'
 
 class BajesHelper():
@@ -72,11 +72,11 @@ class BajesHelper():
     
     def learn_noisy(self):
         matches = self.read_formated_data(MATCH_DATA_ALL)
-        # simple_data = self.get_simple_bajes_data(matches)
+        simple_data = self.get_simple_bajes_data(matches)
         noisy_data = self.get_noisy_bajes_data(matches)
         bajes = Bajes()
         # for x in range(0, 5):
-        # self.add_simple_words(bajes, simple_data)
+        self.add_simple_words(bajes, simple_data)
         self.add_noisy_words(bajes, noisy_data)
         bajes.calculate_spam_probabilities()
         return bajes
@@ -116,6 +116,16 @@ class BajesHelper():
         results = self.get_result_data(results, test_matches)
         self.print_results(results)
 
+    def test_noisy(self, bajes, test_matches):
+        results_noisy = self.calc_noisy(bajes, test_matches)
+        results_simple = self.calc_simple(bajes, test_matches)
+        results = []
+        for x in range(0, len(results_simple)):
+            avg = (results_simple[x] + results_noisy[x]) / 2
+            results.append(avg)
+        results= self.get_result_data(results, test_matches)
+        self.print_results(results)
+
     def calc_simple(self, bajes, test_matches):
         results = []
         test_matches = self.get_simple_bajes_data(test_matches)
@@ -129,10 +139,6 @@ class BajesHelper():
                 results.append(bajes.calc_if_is_spam(values))
         return results
 
-    def test_noisy(self, bajes, test_matches):
-        results = self.calc_noisy(bajes, test_matches)
-        results = self.get_result_data(results, test_matches)
-        self.print_results(results)
     
 # here
     def calc_noisy(self, bajes, test_matches):
@@ -193,7 +199,7 @@ class BajesHelper():
         print('{:<20} | {} | {}'.format('Bajes Chance', 'Outcome', 'Is correct?'))
         for r in results[0]:
             print('{:<20} | {:<7} | {}'.format(r[0], 'win' if r[1] == True else 'loss', r[2]))
-        total = len(results[1])
+        total = results[1].count(True) + results[1].count(False)
         correct = results[1].count(True)
         incorrect = total - correct
         percentage_correct = correct * 100 / total
